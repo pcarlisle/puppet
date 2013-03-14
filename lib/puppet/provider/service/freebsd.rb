@@ -9,6 +9,10 @@ Puppet::Type.type(:service).provide :freebsd, :parent => :init do
   def rcconf_local()  '/etc/rc.conf.local' end
   def rcconf_dir()    '/etc/rc.conf.d' end
 
+  def self.excludes
+    super + ['dhclient', 'power_profile', 'SERVERS', 'FILESYSTEMS', 'NETWORKING', 'LOGIN', 'DAEMON', 'msgs', 'othermta', 'tmp']
+  end
+
   def self.defpath
     superclass.defpath
   end
@@ -17,52 +21,67 @@ Puppet::Type.type(:service).provide :freebsd, :parent => :init do
     raise Puppet::Error, msg
   end
 
-  # Executing an init script with the 'rcvar' argument returns
-  # the service name, rcvar name and whether it's enabled/disabled
+  # Parse the "yesno" value. This follows the definition of `checkyesno`
+  # in `/etc/rc.subr` for true values, but treats anything not true as
+  # false
+  def parse_yesno(yesno)
+    yesno.sub!(/"(.*)"/, '\1')
+    case yesno
+    when /^(yes|true|on|1)$/i
+      true
+    else
+      false
+    end
+  end
+
+  def parse_name(name)
+    puts self.initscript
+    name.chomp.sub(/^#\s*/, '')
+  end
+
+  LINE_REGEX = /^\$?(.+)=(.+)$/
+
+  def parse_rcvars(output)
+    lines = output.lines.to_a
+    name = parse_name(lines.shift)
+    rcvar = nil
+    # If no rcvar is found then the service cannot be disabled in
+    # rc.conf so set enabled true by default
+    enabled = true
+    lines.find do |line|
+      if not line.start_with?('#') and match = LINE_REGEX.match(line)
+        rcvar = match[1]
+        enabled = parse_yesno(match[2])
+        true
+      end
+    end
+    [name, rcvar, enabled]
+  end
+
+  def set_rcvars
+    output = execute([self.initscript, :rcvar], :failonfail => true, :combine => false, :squelch => false)
+    @rcname, @rcvar, @rcenabled = parse_rcvars(output)
+  end
+
+  def rcname
+    set_rcvars unless defined?(@rcname)
+    @rcname
+  end
+
   def rcvar
-    rcvar = execute([self.initscript, :rcvar], :failonfail => true, :combine => false, :squelch => false)
-    rcvar = rcvar.split("\n")
-    rcvar.delete_if {|str| str =~ /^#\s*$/}
-    rcvar[1] = rcvar[1].gsub(/^\$/, '')
-    rcvar
+    set_rcvars unless defined?(@rcvar)
+    @rcvar
   end
 
-  # Extract service name
-  def service_name
-    name = self.rcvar[0]
-    self.error("No service name found in rcvar") if name.nil?
-    name = name.gsub!(/# (.*)/, '\1')
-    self.error("Service name is empty") if name.nil?
-    self.debug("Service name is #{name}")
-    name
-  end
-
-  # Extract rcvar name
-  def rcvar_name
-    name = self.rcvar[1]
-    self.error("No rcvar name found in rcvar") if name.nil?
-    name = name.gsub!(/(.*)(_enable)?=(.*)/, '\1')
-    self.error("rcvar name is empty") if name.nil?
-    self.debug("rcvar name is #{name}")
-    name
-  end
-
-  # Extract rcvar value
-  def rcvar_value
-    value = self.rcvar[1]
-    self.error("No rcvar value found in rcvar") if value.nil?
-    value = value.gsub!(/(.*)(_enable)?="?(\w+)"?/, '\3')
-    self.error("rcvar value is empty") if value.nil?
-    self.debug("rcvar value is #{value}")
-    value
+  def rcenabled
+    set_rcvars unless defined?(@rcenabled)
+    @rcenabled
   end
 
   # Edit rc files and set the service to yes/no
   def rc_edit(yesno)
-    service = self.service_name
-    rcvar = self.rcvar_name
-    self.debug("Editing rc files: setting #{rcvar} to #{yesno} for #{service}")
-    self.rc_add(service, rcvar, yesno) if not self.rc_replace(service, rcvar, yesno)
+    debug("Editing rc files: setting #{rcvar} to #{yesno} for #{rcname}")
+    rc_add(service, rcvar, yesno) if not self.rc_replace(rcname, rcvar, yesno)
   end
 
   # Try to find an existing setting in the rc files
@@ -75,7 +94,7 @@ Puppet::Type.type(:service).provide :freebsd, :parent => :init do
         s = File.read(filename)
         if s.gsub!(/(#{rcvar}(_enable)?)=\"?(YES|NO)\"?/, "\\1=\"#{yesno}\"")
           File.open(filename, File::WRONLY) { |f| f << s }
-          self.debug("Replaced in #{filename}")
+          debug("Replaced in #{filename}")
           success = true
         end
       end
@@ -110,12 +129,11 @@ Puppet::Type.type(:service).provide :freebsd, :parent => :init do
   end
 
   def enabled?
-    if /YES$/ =~ self.rcvar_value
-      self.debug("Is enabled")
-      return :true
+    if rcenabled
+      :true
+    else
+      :false
     end
-    self.debug("Is disabled")
-    :false
   end
 
   def enable
