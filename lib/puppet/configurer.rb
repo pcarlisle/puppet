@@ -146,6 +146,7 @@ class Puppet::Configurer
     options[:report] ||= Puppet::Transaction::Report.new("apply", nil, @environment, @transaction_uuid)
     report = options[:report]
     init_storage
+    configured_environment = @environment
 
     Puppet::Util::Log.newdestination(report)
 
@@ -196,6 +197,7 @@ class Puppet::Configurer
 
       query_options = get_facts(options) unless query_options
       query_options[:transaction_uuid] = @transaction_uuid
+      query_options[:configured_environment] = configured_environment
 
       unless catalog = prepare_and_retrieve_catalog(options, query_options)
         return nil
