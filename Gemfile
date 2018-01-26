@@ -22,6 +22,7 @@ platforms :ruby do
   # Note that it is a native gem, so the augeas headers/libs
   # are neeed.
   #gem 'ruby-augeas', :group => :development
+  gem 'oj'
 end
 
 # override .gemspec deps - may issue warning depending on Bundler version
@@ -29,6 +30,9 @@ gem "facter", *location_for(ENV['FACTER_LOCATION']) if ENV.has_key?('FACTER_LOCA
 gem "hiera", *location_for(ENV['HIERA_LOCATION']) if ENV.has_key?('HIERA_LOCATION')
 # PUP-7115 - return to a gem dependency in Puppet 5
 # gem "semantic_puppet", *location_for(ENV['SEMANTIC_PUPPET_LOCATION'] || ['>= 0.1.3', '< 2'])
+
+gem "multi_json", "1.7.7", :platforms => [:ruby, :jruby]
+gem "jrjackson", :platforms => [:jruby]
 
 group(:development, :test) do
   # rake is in .gemspec as a development dependency but cannot

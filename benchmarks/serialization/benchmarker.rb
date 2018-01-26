@@ -1,4 +1,5 @@
 require 'puppet'
+require 'multi_json'
 
 class Benchmarker
   def initialize(target, size)
@@ -6,7 +7,8 @@ class Benchmarker
     @direction = ENV['SER_DIRECTION'] == 'generate' ? :generate : :parse
     @format = ENV['SER_FORMAT'] == 'pson' ? :pson : :json
 
-    puts "Benchmarker #{@direction} #{@format}"
+    MultiJson.use('jr_jackson')
+    puts "Benchmarker #{@direction} #{@format} #{MultiJson.adapter}"
   end
 
   def setup
@@ -17,7 +19,7 @@ class Benchmarker
     puts "Using catalog #{path}"
 
     @data = File.read(path)
-    @catalog = JSON.parse(@data)
+    @catalog = MultiJson.load(@data)
   end
 
   def run(args=nil)
@@ -35,13 +37,13 @@ class Benchmarker
         if @format == :pson
           PSON.dump(@catalog)
         else
-          JSON.dump(@catalog)
+          MultiJson.dump(@catalog)
         end
       else
         if @format == :pson
           PSON.parse(@data)
         else
-          JSON.parse(@data)
+          MultiJson.load(@data)
         end
       end
     end
