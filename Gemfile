@@ -49,9 +49,8 @@ group(:development, :test) do
   gem "yarjuf", "~> 2.0"
 
   # json-schema does not support windows, so omit it from the platforms list
-  # json-schema uses multi_json, but chokes with multi_json 1.7.9, so prefer 1.7.7
-  gem "multi_json", "1.7.7", :require => false, :platforms => [:ruby, :jruby]
-  gem "json-schema", "2.1.1", :require => false, :platforms => [:ruby, :jruby]
+  gem "multi_json", "~> 1.10", :require => false, :platforms => [:ruby, :jruby]
+  gem "json-schema", "~> 2.0", :require => false, :platforms => [:ruby, :jruby]
 
   if RUBY_VERSION >= '2.0'
     # pin rubocop as 0.50 requires a higher version of the rainbow gem (see below)
@@ -75,6 +74,8 @@ group(:development, :test) do
   gem 'vcr', '~> 2.9'
   gem "hiera-eyaml", :require => false
 
+  # Used for catalog benchmarking
+  gem "r10k", '~> 2.6', :require => false
   gem 'memory_profiler', :platforms => [:mri_21, :mri_22, :mri_23, :mri_24, :mri_25]
 end
 
