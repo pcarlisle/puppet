@@ -1,6 +1,8 @@
 require 'benchmark'
 require 'tmpdir'
 require 'csv'
+require 'objspace'
+require 'memory_profiler'
 
 namespace :benchmark do
   def generate_scenario_tasks(location, name)
@@ -97,6 +99,36 @@ namespace :benchmark do
         printer.print(:profile => name, :path => ENV['TARGET'])
         path = File.join(ENV['TARGET'], "#{name}.callgrind.out.#{$$}")
         puts "Generated callgrind file: #{path}"
+      end
+
+      desc "Print a memory profile of the #{name} scenario."
+      task :memory_profile, [*run_args] => :generate do |_, args|
+        report = MemoryProfiler.report do
+          @benchmark.run(args)
+        end
+        report.pretty_print
+      end
+
+      desc "Generate a heap dump with object allocation tracing of the #{name} scenario."
+      task :heap_dump, [*run_args] => :generate do |_, args|
+        ObjectSpace.trace_object_allocations_start
+
+        if ENV['DISABLE_GC']
+          GC.disable
+        end
+
+        @benchmark.run(args)
+
+        unless ENV['DISABLE_GC']
+          GC.start
+        end
+
+        path = "heap_#{$PID}.json"
+        File.open(path, 'w') do |file|
+          ObjectSpace.dump_all(output: file)
+        end
+
+        puts "Generated heap dump: #{File.absolute_path(path)}"
       end
 
       def to_millis(seconds)
