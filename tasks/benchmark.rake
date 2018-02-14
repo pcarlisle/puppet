@@ -104,7 +104,13 @@ namespace :benchmark do
       task :memory_profile, [*run_args] => :generate do |_, args|
         require 'memory_profiler'
 
-        report = MemoryProfiler.report do
+        profiler_args = {
+          # top: 50,  # maximum entries to display
+          # allow_files: [], # confine to specific files
+          # ignore_files: [],
+          # trace: [], # an array of classes to explicitly trace allocations of
+        }
+        report = MemoryProfiler.report(**profiler_args) do
           @benchmark.run(args)
         end
 
