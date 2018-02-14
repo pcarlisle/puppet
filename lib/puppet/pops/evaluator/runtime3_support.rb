@@ -117,6 +117,8 @@ module Runtime3Support
     unless name =~ Puppet::Pops::Patterns::NUMERIC_VAR_NAME
       optionally_fail(Puppet::Pops::Issues::UNKNOWN_VARIABLE, o, {:name => name})
     end
+    # XXX How does the behavior here related to the behavior in scope.variable_not_found?
+    # The set of variables to not fail on is different, and this one doesn't warn even if warnings are configured
     nil # in case unknown variable is configured as a warning or ignore
   end
 
