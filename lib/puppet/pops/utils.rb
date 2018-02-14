@@ -1,6 +1,9 @@
 # Provides utility methods
 module Puppet::Pops
 module Utils
+
+  NAME_SPACE_SEPARATOR = '::'.freeze
+
   # Can the given o be converted to numeric? (or is numeric already)
   # Accepts a leading '::'
   # Returns a boolean if the value is numeric
@@ -105,11 +108,11 @@ module Utils
 
   # is the name absolute (i.e. starts with ::)
   def self.is_absolute? name
-    name.start_with? "::"
+    name.start_with? NAME_SPACE_SEPARATOR
   end
 
   def self.name_to_segments name
-    name.split("::")
+    name.split(NAME_SPACE_SEPARATOR)
   end
 
   def self.relativize_name name

@@ -8,6 +8,7 @@ module Evaluator
 module Runtime3Support
 
   NAME_SPACE_SEPARATOR = '::'.freeze
+  FUNC_CALL = 'func.call(scope, *args, &block)'.freeze
 
   # Fails the evaluation of _semantic_ with a given issue.
   #
@@ -304,7 +305,7 @@ module Runtime3Support
     if loader && func = loader.load(:function, name)
       Puppet::Util::Profiler.profile(name, [:functions, name]) do
         # Add stack frame when calling. See Puppet::Pops::PuppetStack
-        return Kernel.eval('func.call(scope, *args, &block)', Kernel.binding, file || '', line)
+        return Kernel.eval(FUNC_CALL, Kernel.binding, file || '', line)
       end
     end
     # Call via 3x API if function exists there
