@@ -16,7 +16,6 @@ class Puppet::Parser::Compiler
 
   include Puppet::Util
   include Puppet::Util::Errors
-  include Puppet::Util::MethodHelper
   include Puppet::Pops::Evaluator::Runtime3Support
 
   def self.compile(node, code_id = nil)
@@ -409,7 +408,7 @@ class Puppet::Parser::Compiler
     # in the middle of executing evaluate_applications
     @current_app = nil
     @current_components = nil
-    set_options(options)
+    @code_id = options[:code_id]
     initvars
     add_catalog_validators
     # Resolutions of fully qualified variable names

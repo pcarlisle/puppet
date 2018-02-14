@@ -2,14 +2,20 @@
 class Puppet::Parser::Resource::Param
   include Puppet::Util
   include Puppet::Util::Errors
-  include Puppet::Util::MethodHelper
 
   attr_accessor :name, :value, :source, :add, :file, :line
 
   def initialize(hash)
-    set_options(hash)
-    requiredopts(:name)
-    @name = @name.intern
+    unless hash[:name]
+      raise ArgumentError, "'name' is a required argument for #{self.class}"
+    end
+
+    @name = hash[:name].intern
+    @value = hash[:value]
+    @source = hash[:source]
+    @line = hash[:line]
+    @file = hash[:file]
+    @add = hash[:add]
   end
 
   def line_to_i

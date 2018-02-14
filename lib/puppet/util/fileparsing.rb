@@ -24,15 +24,12 @@
 # You could then call 'parser.to_line(hash)' on any of those hashes to generate
 # the text line again.
 
-require 'puppet/util/methodhelper'
-
 module Puppet::Util::FileParsing
   include Puppet::Util
   attr_writer :line_separator, :trailing_separator
 
   class FileRecord
     include Puppet::Util
-    include Puppet::Util::MethodHelper
     attr_accessor :absent, :joiner, :rts, :separator, :rollup, :name, :match, :block_eval
 
     attr_reader :fields, :optional, :type
@@ -52,7 +49,13 @@ module Puppet::Util::FileParsing
       @type = type.intern
       raise ArgumentError, _("Invalid record type %{record_type}") % { record_type: @type } unless [:record, :text].include?(@type)
 
-      set_options(options)
+      self.match = options[:match]
+      self.fields = options[:fields] if options[:fields]
+      self.optional = options[:optional] if options[:optional]
+      self.to_line = options[:to_line] if options[:to_line]
+      self.post_parse = options[:post_parse] if options[:post_parse]
+      self.pre_gen = options[:pre_gen] if options[:pre_gen]
+      self.rts = options[:rts]
 
       if self.type == :record
         # Now set defaults.

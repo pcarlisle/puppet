@@ -1,6 +1,5 @@
 require 'puppet/util/docs'
 require 'puppet/util/profiler'
-require 'puppet/util/methodhelper'
 require 'puppet/indirector/envelope'
 require 'puppet/indirector/request'
 
@@ -8,7 +7,6 @@ require 'puppet/indirector/request'
 # back-ends.  Each indirection has a set of associated terminus classes,
 # each of which is a subclass of Puppet::Indirector::Terminus.
 class Puppet::Indirector::Indirection
-  include Puppet::Util::MethodHelper
   include Puppet::Util::Docs
 
   attr_accessor :name, :model
@@ -94,8 +92,11 @@ class Puppet::Indirector::Indirection
     @name = name
     @termini = {}
 
-    @cache_class = nil
-    @terminus_class = nil
+    @cache_class = options[:cache_class]
+    @terminus_class = options[:terminus_class]
+    @terminus_setting = options[:terminus_setting]
+
+    @doc = options[:doc]
 
     raise(ArgumentError, _("Indirection %{name} is already defined") % { name: @name }) if @@indirections.find { |i| i.name == @name }
     @@indirections << self
@@ -105,9 +106,6 @@ class Puppet::Indirector::Indirection
       extend(mod)
       options.delete(:extend)
     end
-
-    # This is currently only used for cache_class and terminus_class.
-    set_options(options)
   end
 
   # Set up our request object.
