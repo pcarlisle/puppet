@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 # The scope class, which handles storing and retrieving variables and types and
 # such.
@@ -263,7 +264,11 @@ class Puppet::Parser::Scope
     end
 
     def to_hash
-      Hash[@params.select {|_, access| access.assigned? }.map { |name, access| [name, access.value] }]
+      h = Hash.new
+      @params.each { |name, access|
+        h[name] = access.value if access.assigned?
+      }
+      h
     end
   end
 
