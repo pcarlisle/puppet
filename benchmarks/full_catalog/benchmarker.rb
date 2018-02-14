@@ -52,6 +52,11 @@ class Benchmarker
       'group' => 'pgtomcat',
       'stage' => 'prod',
       'whereami' => 'portland',
+      'hostname' => 'pgtomcat',
+      'fqdn' => 'pgtomcat.mycompany.org',
+      'lsbdistcodename' => 'n/a',
+      # 'is_vagrant' => 'false',
+      'processor0' => 'AMD Ryzen 7 1700 Eight-Core Processor',
     })
 
     env = Puppet.lookup(:environments).get('perf_control')
