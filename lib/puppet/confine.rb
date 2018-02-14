@@ -21,7 +21,7 @@ class Puppet::Confine
   end
 
   def self.test(name)
-    unless @tests[name]
+    unless @tests.include?(name)
       begin
         require "puppet/confine/#{name}"
       rescue LoadError => detail
@@ -29,6 +29,7 @@ class Puppet::Confine
           warn "Could not load confine test '#{name}': #{detail}"
         end
         # Could not find file
+        @tests[name] = nil
       end
     end
     @tests[name]
