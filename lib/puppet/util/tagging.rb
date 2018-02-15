@@ -78,11 +78,8 @@ module Puppet::Util::Tagging
     @tags = tag_source.tags
   end
 
-  # Return a copy of the tag list, so someone can't ask for our tags
-  # and then modify them.
   def tags
-    @tags ||= new_tags
-    @tags.dup
+    @tags
   end
 
   # Merge tags from a tagged instance with no attempts to split, downcase
