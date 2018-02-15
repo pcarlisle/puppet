@@ -258,7 +258,7 @@ class Puppet::Resource::Type
     end
 
     if ['Class', 'Node'].include? resource.type
-      scope.catalog.merge_tags(resource)
+      scope.catalog.merge_tags_from(resource)
     end
   end
 
