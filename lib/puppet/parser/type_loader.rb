@@ -64,15 +64,11 @@ class Puppet::Parser::TypeLoader
   def try_load_fqname(type, fqname)
     return nil if fqname == "" # special-case main.
     files_to_try_for(fqname).each do |filename|
-      begin
-        imported_types = import_from_modules(filename)
+      if imported_types = import_from_modules(filename)
         if result = imported_types.find { |t| t.type == type and t.name == fqname }
           Puppet.debug {"Automatically imported #{fqname} from #{filename} into #{environment}"}
           return result
         end
-      rescue TypeLoaderError
-        # I'm not convinced we should just drop these errors, but this
-        # preserves existing behaviours.
       end
     end
     # Nothing found.
@@ -91,10 +87,10 @@ class Puppet::Parser::TypeLoader
   def import_from_modules(pattern)
     modname, files = Puppet::Parser::Files.find_manifests_in_modules(pattern, environment)
     if files.empty?
-      raise_no_files_found(pattern)
+      nil
+    else
+      load_files(modname, files)
     end
-
-    load_files(modname, files)
   end
 
   def raise_no_files_found(pattern)

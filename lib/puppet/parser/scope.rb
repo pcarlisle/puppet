@@ -530,19 +530,17 @@ class Puppet::Parser::Scope
     if BUILT_IN_VARS.include?(name) || name =~ Puppet::Pops::Patterns::NUMERIC_VAR_NAME
       return nil
     end
-    begin
-      throw(:undefined_variable, reason)
-    rescue  UNCAUGHT_THROW_EXCEPTION
-      case Puppet[:strict]
-      when :off
-        # do nothing
-      when :warning
-        Puppet.warn_once(UNDEFINED_VARIABLES_KIND, _("Variable: %{name}") % { name: name },
-        _("Undefined variable '%{name}'; %{reason}") % { name: name, reason: reason } )
-      when :error
-        raise ArgumentError, _("Undefined variable '%{name}'; %{reason}") % { name: name, reason: reason }
-      end
+
+    case Puppet[:strict]
+    when :off
+    # do nothing
+    when :warning
+      Puppet.warn_once(UNDEFINED_VARIABLES_KIND, _("Variable: %{name}") % { name: name },
+                       _("Undefined variable '%{name}'; %{reason}") % { name: name, reason: reason } )
+    when :error
+      raise ArgumentError, _("Undefined variable '%{name}'; %{reason}") % { name: name, reason: reason }
     end
+
     nil
   end
 
