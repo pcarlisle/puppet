@@ -2633,7 +2633,7 @@ end
   #
   def to_resource
     resource = self.retrieve_resource
-    resource.tag(*self.tags)
+    resource.merge_tags(self)
 
     @parameters.each do |name, param|
       # Avoid adding each instance name twice

@@ -663,7 +663,7 @@ class Puppet::Parser::Compiler
         data[target] = source_data.merge(metaparams_as_data(target, names))
       end
 
-      target.tag(*(source.tags))
+      target.merge_tags(source)
     end
   end
 
