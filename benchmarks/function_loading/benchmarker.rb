@@ -21,7 +21,6 @@ class Benchmarker
   def run(args=nil)
     envs = Puppet.lookup(:environments)
 
-    envs.clear('benchmarking')
 #    # Uncomment to get some basic memory statistics
 #    ObjectSpace.garbage_collect
 #    result = {}
@@ -29,6 +28,7 @@ class Benchmarker
 #    puts "C(#{result[:T_CLASS]}) O(#{result[:T_OBJECT]}) F(#{result[:FREE]}) #{result[:T_CLASS] + result[:T_OBJECT]}"
     node = Puppet::Node.new('testing', :environment => envs.get('benchmarking'))
     Puppet::Resource::Catalog.indirection.find('testing', :use_node => node)
+    envs.clear('benchmarking')
   end
 
   def benchmark_count
