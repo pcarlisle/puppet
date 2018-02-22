@@ -370,7 +370,7 @@ class Puppet::Util::Log
     raise ArgumentError, _("Invalid log level %{level}") % { level: @level } unless self.class.validlevel?(@level)
 
     # Tag myself with my log level
-    tag(level)
+    tag(level.to_s.encode('UTF-8'))
   end
 
   # If they pass a source in to us, we make sure it is a string, and

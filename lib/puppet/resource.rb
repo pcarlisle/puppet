@@ -597,7 +597,7 @@ class Puppet::Resource
   def self.munge_type_name(value)
     return :main if value == :main
     return TYPE_CLASS if value == '' || value.nil? || value.to_s.casecmp('component') == 0
-    Puppet::Pops::Types::TypeFormatter.singleton.capitalize_segments(value.to_s)
+    Puppet::Pops::Types::TypeFormatter.singleton.capitalize_segments(value.to_s.encode('UTF-8'))
   end
   private_class_method :munge_type_name
 

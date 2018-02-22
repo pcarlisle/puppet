@@ -145,7 +145,7 @@ class Loaders
     rt3_loader = loaders.runtime3_type_loader
     return nil if rt3_loader.nil?
 
-    name = name.to_s
+    name = name.to_s.encode('UTF-8')
     caps_name = Types::TypeFormatter.singleton.capitalize_segments(name)
     typed_name = Loader::TypedName.new(:type, name)
     rt3_loader.set_entry(typed_name, Types::PResourceType.new(caps_name), origin)

@@ -153,7 +153,8 @@ class Parser
   end
 
   def namespace
-    @namestack.join('::')
+    # If namestack is empty this will produce an ascii string
+    @namestack.join('::').encode('UTF-8')
   end
 
   def namestack(name)
