@@ -1,3 +1,4 @@
+require 'puppet/util/methodhelper'
 require 'puppet/util/logging'
 require 'puppet/util/docs'
 
@@ -21,6 +22,7 @@ class Puppet::Parameter
   include Puppet::Util
   include Puppet::Util::Errors
   include Puppet::Util::Logging
+  include Puppet::Util::MethodHelper
 
   require 'puppet/parameter/value_collection'
 
