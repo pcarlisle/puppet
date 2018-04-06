@@ -57,7 +57,7 @@ module Pcore
 
             # Puppet Task version
             puppet_task_version => { type => Integer, value => 1 },
-  
+
             # Type, description, and sensitive property of each parameter 
             parameters => {
               type => Optional[Hash[
@@ -79,7 +79,7 @@ module Pcore
                   type => Type]]],
               value => undef
             },
- 
+
             supports_noop => { type => Boolean, value => false },
             input_method => { type => String, value => 'both' },
           }
