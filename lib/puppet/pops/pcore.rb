@@ -32,6 +32,16 @@ module Pcore
   end
 
   def self.init_env(loader)
+    add_object_type('Deferred', <<-PUPPET, loader)
+      {
+        attributes => {   
+          # Fully qualified name of the function
+          name  => { type => Pattern[/\\A[a-z][a-z0-9_]*(?:::[a-z][a-z0-9_]*)*\\z/] },
+          arguments => { type => Optional[Array[Any]], value => undef},
+        }
+      }
+    PUPPET
+
     if Puppet[:tasks]
       add_object_type('Task', <<-PUPPET, loader)
         {
