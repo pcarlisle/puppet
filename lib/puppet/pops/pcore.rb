@@ -35,7 +35,7 @@ module Pcore
     if Puppet[:tasks]
       add_object_type('Task', <<-PUPPET, loader)
         {
-          attributes => {   
+          attributes => {
             # Fully qualified name of the task
             name => { type => Pattern[/\\A[a-z][a-z0-9_]*(?:::[a-z][a-z0-9_]*)*\\z/] },
 
