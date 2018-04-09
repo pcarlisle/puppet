@@ -86,7 +86,7 @@ class DeferredResolver
       result
     elsif x.is_a?(Puppet::Pops::Types::PSensitiveType::Sensitive)
       # rewrap in a new Sensitive after resolving any nested deferred values
-      x.unwrap {|unwrapped| Puppet::Pops::Types::PSensitiveType::Sensitive.new(resolve(unwrapped)) }
+      Puppet::Pops::Types::PSensitiveType::Sensitive.new(resolve(x.unwrap))
     else
       x
     end
