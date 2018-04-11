@@ -494,55 +494,55 @@ describe Puppet::Configurer do
 
     before do
       Puppet.settings.stubs(:use).returns(true)
-      @configurer = Puppet::Configurer.new
       Puppet[:lastrunfile] = tmpfile('last_run_file')
-
-      @report = Puppet::Transaction::Report.new
       Puppet[:reports] = "none"
     end
+
+    let(:configurer) { Puppet::Configurer.new }
+    let(:report)     { Puppet::Transaction::Report.new }
 
     it "should print a report summary if configured to do so" do
       Puppet.settings[:summarize] = true
 
-      @report.expects(:summary).returns "stuff"
+      report.expects(:summary).returns "stuff"
 
-      @configurer.expects(:puts).with("stuff")
-      @configurer.send_report(@report)
+      configurer.expects(:puts).with("stuff")
+      configurer.send_report(report)
     end
 
     it "should not print a report summary if not configured to do so" do
       Puppet.settings[:summarize] = false
 
-      @configurer.expects(:puts).never
-      @configurer.send_report(@report)
+      configurer.expects(:puts).never
+      configurer.send_report(report)
     end
 
     it "should save the report if reporting is enabled" do
       Puppet.settings[:report] = true
 
-      Puppet::Transaction::Report.indirection.expects(:save).with(@report, nil, instance_of(Hash))
-      @configurer.send_report(@report)
+      Puppet::Transaction::Report.indirection.expects(:save).with(report, nil, instance_of(Hash))
+      configurer.send_report(report)
     end
 
     it "should not save the report if reporting is disabled" do
       Puppet.settings[:report] = false
 
-      Puppet::Transaction::Report.indirection.expects(:save).with(@report, nil, instance_of(Hash)).never
-      @configurer.send_report(@report)
+      Puppet::Transaction::Report.indirection.expects(:save).with(report, nil, instance_of(Hash)).never
+      configurer.send_report(report)
     end
 
     it "should save the last run summary if reporting is enabled" do
       Puppet.settings[:report] = true
 
-      @configurer.expects(:save_last_run_summary).with(@report)
-      @configurer.send_report(@report)
+      configurer.expects(:save_last_run_summary).with(report)
+      configurer.send_report(report)
     end
 
     it "should save the last run summary if reporting is disabled" do
       Puppet.settings[:report] = false
 
-      @configurer.expects(:save_last_run_summary).with(@report)
-      @configurer.send_report(@report)
+      configurer.expects(:save_last_run_summary).with(report)
+      configurer.send_report(report)
     end
 
     it "should log but not fail if saving the report fails" do
@@ -551,7 +551,7 @@ describe Puppet::Configurer do
       Puppet::Transaction::Report.indirection.expects(:save).raises("whatever")
 
       Puppet.expects(:err)
-      expect { @configurer.send_report(@report) }.not_to raise_error
+      expect { configurer.send_report(report) }.not_to raise_error
     end
   end
 
@@ -560,21 +560,20 @@ describe Puppet::Configurer do
 
     before do
       Puppet.settings.stubs(:use).returns(true)
-      @configurer = Puppet::Configurer.new
-
-      @report = stub 'report', :raw_summary => {}
-
       Puppet[:lastrunfile] = tmpfile('last_run_file')
     end
 
+    let(:configurer) { Puppet::Configurer.new }
+    let(:report) { stub 'report', :raw_summary => {}}
+
     it "should write the last run file" do
-      @configurer.save_last_run_summary(@report)
+      configurer.save_last_run_summary(report)
       expect(Puppet::FileSystem.exist?(Puppet[:lastrunfile])).to be_truthy
     end
 
     it "should write the raw summary as yaml" do
-      @report.expects(:raw_summary).returns("summary")
-      @configurer.save_last_run_summary(@report)
+      report.expects(:raw_summary).returns("summary")
+      configurer.save_last_run_summary(report)
       expect(File.read(Puppet[:lastrunfile])).to eq(YAML.dump("summary"))
     end
 
@@ -590,12 +589,12 @@ describe Puppet::Configurer do
       Puppet::Util.expects(:replace_file).yields(fh)
 
       Puppet.expects(:err)
-      expect { @configurer.save_last_run_summary(@report) }.to_not raise_error
+      expect { configurer.save_last_run_summary(report) }.to_not raise_error
     end
 
     it "should create the last run file with the correct mode" do
       Puppet.settings.setting(:lastrunfile).expects(:mode).returns('664')
-      @configurer.save_last_run_summary(@report)
+      configurer.save_last_run_summary(report)
 
       if Puppet::Util::Platform.windows?
         require 'puppet/util/windows/security'
@@ -609,7 +608,7 @@ describe Puppet::Configurer do
     it "should report invalid last run file permissions" do
       Puppet.settings.setting(:lastrunfile).expects(:mode).returns('892')
       Puppet.expects(:err).with(regexp_matches(/Could not save last run local report.*892 is invalid/))
-      @configurer.save_last_run_summary(@report)
+      configurer.save_last_run_summary(report)
     end
   end
 
@@ -664,6 +663,9 @@ describe Puppet::Configurer do
 
       # this is the default when using a Configurer instance
       Puppet::Resource::Catalog.indirection.stubs(:terminus_class).returns :rest
+    end
+    after do
+      Puppet::Resource::Catalog.indirection.reset_terminus_class
     end
 
     let(:catalog) {
