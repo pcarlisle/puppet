@@ -72,11 +72,17 @@ describe Puppet::Util::Autoload do
   end
 
   describe "when loading a file" do
-    before do
+    let(:myfile_absolute) { make_absolute('/a/tmp/myfile.rb') }
+
+    before(:each) do
       @autoload.class.stubs(:search_directories).returns [make_absolute("/a")]
       FileTest.stubs(:directory?).returns true
       @time_a = Time.utc(2010, 'jan', 1, 6, 30)
       File.stubs(:mtime).returns @time_a
+    end
+
+    after(:each) do
+      $LOADED_FEATURES.delete(myfile_absolute)
     end
 
     [RuntimeError, LoadError, SyntaxError].each do |error|
@@ -99,8 +105,6 @@ describe Puppet::Util::Autoload do
       @autoload.load("myfile")
 
       expect(@autoload.class.loaded?("tmp/myfile.rb")).to be
-
-      $LOADED_FEATURES.delete("tmp/myfile.rb")
     end
 
     it "should be seen by loaded? on the instance using the short name" do
@@ -109,8 +113,6 @@ describe Puppet::Util::Autoload do
       @autoload.load("myfile")
 
       expect(@autoload.loaded?("myfile.rb")).to be
-
-      $LOADED_FEATURES.delete("tmp/myfile.rb")
     end
 
     it "should register loaded files with the main loaded file list so they are not reloaded by ruby" do
@@ -119,9 +121,7 @@ describe Puppet::Util::Autoload do
 
       @autoload.load("myfile")
 
-      expect($LOADED_FEATURES).to be_include("tmp/myfile.rb")
-
-      $LOADED_FEATURES.delete("tmp/myfile.rb")
+      expect($LOADED_FEATURES).to be_include(myfile_absolute)
     end
 
     it "should load the first file in the searchpath" do
@@ -131,8 +131,6 @@ describe Puppet::Util::Autoload do
       Kernel.expects(:load).with(make_absolute("/a/tmp/myfile.rb"), optionally(anything))
 
       @autoload.load("myfile")
-
-      $LOADED_FEATURES.delete("tmp/myfile.rb")
     end
 
     it "should treat equivalent paths to a loaded file as loaded" do
@@ -144,8 +142,6 @@ describe Puppet::Util::Autoload do
       expect(@autoload.class.loaded?("tmp/./myfile.rb")).to be
       expect(@autoload.class.loaded?("./tmp/myfile.rb")).to be
       expect(@autoload.class.loaded?("tmp/../tmp/myfile.rb")).to be
-
-      $LOADED_FEATURES.delete("tmp/myfile.rb")
     end
   end
 
