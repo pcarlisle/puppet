@@ -1,8 +1,33 @@
-# Decrypts given crypto string (as produced by encrypt()) for the local host.
+# Decrypts given crypto string (as produced by encrypt()) for the local host and returns a `Sensitive` value with the decrypted value
 #
-# @example Encrypt and decrypt
+# @example Encrypt and decrypt in apply mode
 #   $encrypted = encrypt("Area 51 - the aliens are alive and well")
-#   $clear = decrypt($encrypted)
+#   $clear = decrypt($encrypted).unwrap
+#
+# Typically the result of encryption is for a node and the target resource where the encrypted value is used as the
+# value of an attribute is not prepared to handle the decryption. To be able to send the encrypted value and
+# to give the resource a Sensitive decrypted value a `Deferred` value is used.
+#
+# @example Using a Deferred value to decrypt on node - with Sensitive input
+#   class mymodule::myclass(Sensitive $password) {
+#     mymodule::myresource { 'example':
+#       password => Deferred('decrypt', encrypt($password))
+#     }
+#   }
+#
+#
+# @example Using a Deferred value to decrypt on node - with input being clear text
+#   class mymodule::myclass(String $password) {
+#     mymodule::myresource { 'example':
+#       password => Deferred('decrypt', encrypt($password))
+#     }
+#   }
+#
+# In both of the example above, the resulting value assigned to the `password` is marked as `Sensitive`
+#
+# See `encrypt()` for details about encryption.
+#
+# @Since 5.5.x - TBD
 #
 Puppet::Functions.create_function(:decrypt) do
   require 'openssl'
@@ -31,7 +56,9 @@ Puppet::Functions.create_function(:decrypt) do
       raise ArgumentError.new(_("Decryption failed, not encrypted for current certificate of this node"))
     end
 
-    deserialize(data)
+    clear = deserialize(data)
+    sensitive = Puppet::Pops::Types::PSensitiveType::Sensitive
+    clear.is_a?(sensitive) ? clear : sensitive.new(clear)
   end
 
   def deserialize(data)
