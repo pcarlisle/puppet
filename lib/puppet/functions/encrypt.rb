@@ -1,10 +1,44 @@
 # Encrypts given data for the node requesting a catalog and returns a String that can be decrypted with decrypt()
 #
-# Encryption uses
-# * the X509 certificate for the requesting node.
-# * A random AES256-CBC key - encrypted for the node
-# * The data encrypted using the AES random key
-# * The fingerprint of the cert
+# Encryption uses the X509 certificate for the requesting (recipient) node.
+#
+# It encrypts the given data into a result consisting of:
+# * The cipher name (currently always 'AES-256-CBC')
+# * A random cipher key - encrypted with the recipient's public key
+# * The data encrypted using a cipher random key and a random initialization vector IV
+# * The fingerprint of the certificate encrypted with the random key and same random IV (included to enable detection of
+#   stale/wrong certificate when decrypting).
+#
+# All of the above is Base64 encoded and joined via `|` to form a single string
+# that can be given to the `decrypt` function for decryption.
+#
+# The functions `encrypt()` and `decrypt()` can be used in both master and apply mode. When in master mode
+# encryption is always for the node requesting a catalog and decryption is always for the local host (the master).
+# Thus, `notice(decrypt(encrypt("the moon is made of cheeze")).unwrap)` will work in apply mode, but will error on the master.
+#
+# @example Encrypting a String
+#   encrypt("Area 51 - the aliens are alive")
+#
+# @example Encrypting a Hash
+#   encrypt('pin_code' => 1234, 'account' => 'IBAN XEB 0123456789')
+#
+# @example Encrypting a Sensitive value
+#   encrypt(Sensitive("my password is secret"))
+#
+# Typically the result of encryption is for a node and the target resource where the encrypted value is used as the
+# value of an attribute is not prepared to handle the decryption. To be able to send the encrypted value and
+# to give the resource a Sensitive decrypted value a `Deferred` value is used.
+#
+# @example Using a Deferred value to decrypt on node
+#   class mymodule::myclass(Sensitive $password) {
+#     mymodule::myresource { 'example':
+#       password => Deferred('decrypt', encrypt($password))
+#     }
+#   }
+#
+# See `decrypt()` for details about decryption.
+#
+# @Since 5.5.x - TBD
 #
 Puppet::Functions.create_function(:encrypt) do
   require 'openssl'
