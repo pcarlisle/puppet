@@ -43,6 +43,7 @@ class Puppet::Network::HTTP::API::IndirectedRoutes
       raise Puppet::Network::HTTP::Error::HTTPNotFoundError.new(_("No handler for %{indirection}") % { indirection: indirection.name }, :NO_INDIRECTION_REMOTE_REQUESTS)
     end
 
+    require 'byebug'; debugger
     trusted = Puppet::Context::TrustedInformation.remote(params[:authenticated], params[:node], certificate)
     Puppet.override(:trusted_information => trusted) do
       send("do_#{method}", indirection, key, params, request, response)
