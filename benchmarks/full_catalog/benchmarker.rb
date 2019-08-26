@@ -7,9 +7,14 @@ require 'bundler'
 class Benchmarker
   include FileUtils
 
-  def initialize(target, size='medium')
+  def initialize(target, size)
+    # size is set by SIZE in the environment, but defaults to 100 which has no meaning here
     @target = target
-    @size = 'large'
+    if %w[small medium large].include?(size)
+      @size = size
+    else
+      @size = 'large'
+    end
   end
 
   def check_submodule
