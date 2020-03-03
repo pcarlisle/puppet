@@ -72,6 +72,7 @@ class Puppet::Node::Environment
   # @param name [Symbol] The environment name
   def initialize(name, modulepath, manifest, config_version)
     @lock = Puppet::Concurrent::Lock.new
+    @loaders_lock = Puppet::Concurrent::Lock.new
     @name = name.intern
     @modulepath = self.class.expand_dirs(self.class.extralibs() + modulepath)
     @manifest = manifest == NO_MANIFEST ? manifest : Puppet::FileSystem.expand_path(manifest)
@@ -161,6 +162,10 @@ class Puppet::Node::Environment
   # Cached loaders - management of value handled by Puppet::Pops::Loaders
   # @api private
   attr_accessor :loaders
+
+  # A lock for loader initialization, used by Puppet::Pops::Loaders
+  # @api private
+  attr_reader :loaders_lock
 
   # Checks to make sure that this environment did not have a manifest set in
   # its original environment.conf if Puppet is configured with
